@@ -1,2 +1,2 @@
 # evolver-firmware
-Firmware loaded onto the eVOLVER's arduinos.
+Firmware loaded onto the "eVOLVER versão CNPEM"s arduinos.
