@@ -1,3 +1,5 @@
+#include <Ethernet.h>
+
 // Recurring Command: "tempr,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,_!"
 // Immediate Command: "tempi,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,_!"
 // Acknowledgement to Run: "tempa,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,_!"
@@ -11,17 +13,16 @@
 // Serial Event Variables
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
-int num_vials = 16;
+
 // Mux Control Pins
 int s0 = 7, s1 = 8, s2 = 9, s3 = 10, SIG_PIN = 0;
-unsigned long mux_total[num_vials];
+
 
 // Serial Communication Variables
 String comma = ",";
 String end_mark = "end";
 String address = "temp";
-
-evolver_si in("temp", "_!", num_vials+1); // 17 CSV-inputs from RPI
+int num_vials = 16;
 boolean new_input = false;
 int saved_inputs[] = {4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095};
 
@@ -81,12 +82,12 @@ void setup() {
   }
 }
 
+
 void loop() {
   serialEvent();
   if(stringComplete){
     read_MuxShield();
-    Serial.println(mux_total);
-    
+    delay(200);
     }}
 
     
@@ -158,7 +159,7 @@ int readMux(int channel) {
 
   //read the value at the SIG pin
   int val = analogRead(SIG_PIN);
-
+  Serial.println(val);
   //return the value
   return val;
 }
