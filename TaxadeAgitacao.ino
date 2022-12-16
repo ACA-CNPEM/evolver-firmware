@@ -70,10 +70,11 @@ void loop(){
 void serialEvent(int time_wait) { //função que verifica os valores do input da string, seu tipo (stira, stirr ou stiri) e se a mesma está completa (último caractere = _!)
   for (int n=0; n<time_wait; n++) {
       while (SerialUSB.available()) { //enquanto houver input do monitor serial
-        char inChar = (char)SerialUSB.read();//criar um char "inChar", que assume valores 
-        inputString += inChar;
-        if (inChar == '!') {
-          stringComplete = true;
+        char inChar = (char)SerialUSB.read();//criar um char "inChar", que assume valores dos inputs do usuário 
+        inputString += inChar; //Adiciona o input do usuário à inputString
+        if (inChar == '!') {  //Se o inpurt for igual a '!',>
+          stringComplete = true; //considera que a string está completa
+          
         }
       }
     delay(1);
@@ -81,26 +82,26 @@ void serialEvent(int time_wait) { //função que verifica os valores do input da
 
 }
 
-void exec_stir()
+void exec_stir() //Função que realiza a agitação
 {
-  for (int i = 0; i < num_vials; i++) {
-    if (Input[i]  != 0) {
+  for (int i = 0; i < num_vials; i++) { //Para cada uma das Smart Sleeves (SS), se o input for diferente de 0,
+    if (Input[i]  != 0) { //aciona a placa Tlc para agitar o recipiente de acordo com o input
       Tlc.set(LEFT_PWM,i, 0);
       //Serial.print("Code: " + String(in.output_array[i]) + " ");
     }
   }
   //Serial.println();
 
-    while(Tlc.update());
-    serialEvent(12);
+    while(Tlc.update());//enquanto atualiza os valores do tlc, 
+    serialEvent(12);//escaneia por novos inputs
 
    // 10 settings for the stir rate
    for (int n = 0; n < 98; n++) {
     for (int i = 0; i < num_vials; i++) {
 
       if (Input[i] == n) {
-        Tlc.set(LEFT_PWM,i, 4095);
-      }
+        Tlc.set(LEFT_PWM,i, 4095);//escaneia os valores de cada SS. Se o valor for igual a n (entre 0 e 98),tal valor é 
+      }                           //adotado pela PWM e utilizado como taxa de agitação.
     }
     while(Tlc.update());
     serialEvent(1);
@@ -111,6 +112,6 @@ void exec_stir()
 
 void update_values() {
   for (int i = 0; i < num_vials; i++) {
-     Input[i] =  saved_inputs[i];
+     Input[i] =  saved_inputs[i];         //Atualiza os valores de saved_inputs utilizando os valores introduzidos pelo usuário. 
   }
 }
