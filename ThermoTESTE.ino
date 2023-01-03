@@ -106,8 +106,8 @@ void serialEvent() {
 void read_MuxShield() {
 
   int times_avg = 3;
-  unsigned long mux_total[num_vials];
-  int mux_readings[num_vials];
+  unsigned long mux_total[num_vials];  
+  int mux_readings[num_vials]; //declara uma array de valores inteiros, correspondentes aos valores do número de vials.
 
   memset(mux_total, 0, sizeof(mux_total));
   for (int h = 0; h < (times_avg); h++) {
@@ -118,7 +118,7 @@ void read_MuxShield() {
 
   for (int m = 0; m < num_vials; m++) {
     mux_readings[m] = mux_total[m] / times_avg;
-    Input[m] = mux_readings[m];
+    Input[m] = mux_readings[m];    //adquire e faz uma média dos valores lidos pelo mux.
   }
 
   for (int i = 0; i < num_vials; i = i + 1) {
@@ -159,7 +159,7 @@ int readMux(int channel) {
 
   //read the value at the SIG pin
   int val = analogRead(SIG_PIN);
-  Serial.println(val);
+  Serial.println(val); //escreve o valor lido pelo mux, de cada vial.
   //return the value
   return val;
 }
