@@ -18,7 +18,7 @@ boolean stringComplete = false;  // whether the string is complete
 boolean serialAvailable = true;  // if serial port is ok to write on
 
 // Mux Shield Components and Control Pins     
-int s0 = 7, s1 = 8, s2 = 9, s3 = 10, SIG_pin = A0; //Ports de controle de MUX
+int s0 = 2, s1 = 3, s2 = 4, s3 = 5, SIG_pin = A1; //Ports de controle de MUX
 int num_vials = 16;   //Número de Vials
 int mux_readings[16]; // The size Assumes number of vials
 int active_vial = 0;  //vial em análise inicial
