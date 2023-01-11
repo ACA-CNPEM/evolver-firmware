@@ -117,7 +117,7 @@ void loop() {
     }
     
     // Loop para o controle do LED
-    if (led.addressFound) {    /se encontra endereço do LED
+    if (led.addressFound) {    //se encontra endereço do LED
       if (led.input_array[0] == "i" || led.input_array[0] == "r") {  //se o input for do tipo imediato (i)ou recorrente (r)
         SerialUSB.println("Saving LED Setpoints");
         for (int n = 1; n < num_vials+1; n++) {   //realiza uma ação para cada um dos vials
@@ -154,5 +154,116 @@ void loop() {
   stringComplete = false;
 }
 
+void serialEvent() {
+  while (Serial1.available()) {
+    char inChar = (char)Serial1.read();
+    inputString += inChar;
+    if (inChar == '!') {
+      stringComplete = true;
+      break;
+    }
+  }
+}
 
+void echoLED() {
+  digitalWrite(12, HIGH);
+  
+  String outputString = led_address + "e,";
+  for (int n = 1; n < num_vials+1 ; n++) {
+    outputString += led.input_array[n];
+    outputString += comma;
+  }
+  outputString += end_mark;
+  delay(100);
+  if (serialAvailable) {
+    SerialUSB.println(outputString);
+    Serial1.print(outputString);
+  }  
+  delay(100);
+  digitalWrite(12, LOW);
+}
+
+void update_LEDvalues() {
+  for (int i = 0; i < num_vials; i++) {
+    Tlc.set(LEFT_PWM, i, 4095 - saved_LEDinputs[i]);
+  }
+  while(Tlc.update());
+}
+
+
+int dataResponse (){
+  digitalWrite(12, HIGH);
+  String outputString = photodiode_address + "b,"; // b is a broadcast tag
+  for (int n = 0; n < num_vials; n++) {
+    outputString += output[n];
+    outputString += comma;
+  }
+  outputString += end_mark;
+
+  delay(100); // important to make sure pin 12 flips appropriately
+  
+  SerialUSB.println(outputString);
+  Serial1.print(outputString); // issues w/ println on Serial 1 being read into Raspberry Pi
+
+  delay(100); // important to make sure pin 12 flips appropriately
+
+  digitalWrite(12, LOW);
+}
+
+void read_MuxShield() {
+  unsigned long mux_total=0;
+  
+  for (int h=0; h<(PDtimes_averaged); h++){
+    mux_total = mux_total + readMux(active_vial);
+    serialEvent();
+    if (stringComplete){
+      SerialUSB.println("String Completed, stop averaging");
+      SerialUSB.println(h);
+      break;
+    }
+  }
+  if (!stringComplete){
+    output[active_vial] = mux_total / PDtimes_averaged;
+    SerialUSB.println(output[active_vial]);
+    if (active_vial == 15){
+      active_vial = 0;
+    } else {
+      active_vial++;
+    }
+  }
+}
+
+int readMux(int channel){
+  int controlPin[] = {s0, s1, s2, s3};
+
+  int muxChannel[16][4]={
+    {0, 0, 0, 0}, //channel 0; Vial 0
+    {1, 1, 0, 0}, //channel 3; Vial 1
+    {1, 0, 0, 0}, //channel 1; Vial 2
+    {0, 1, 0, 0}, //channel 2; Vial 3
+    {0, 0, 1, 0}, //channel 4; Vial 4
+    {1, 1, 1, 0}, //channel 7; Vial 5
+    {1, 0, 1, 0}, //channel 5; Vial 6
+    {0, 1, 1, 0}, //channel 6; Vial 7
+    {0, 0, 0, 1}, //channel 8; Vial 8
+    {1, 1, 0, 1}, //channel 11; Vial 9
+    {1, 0, 0, 1}, //channel 9; Vial 10
+    {0, 1, 0, 1}, //channel 10; Vial 11
+    {0, 0, 1, 1}, //channel 12; Vial 12
+    {1, 1, 1, 1}, //channel 15; Vial 13
+    {1, 0, 1, 1}, //channel 13; Vial 14
+    {0, 1, 1, 1}, //channel 14; Vial 15
+  };
+
+  //loop through the 4 sig
+  for(int i = 0; i < 4; i ++){
+    digitalWrite(controlPin[i], muxChannel[channel][i]);
+  }
+
+  //read the value at the SIG pin
+  int val = analogRead(SIG_pin);
+
+  //return the value
+  return val;
+}
 
