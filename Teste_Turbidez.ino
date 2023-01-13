@@ -29,7 +29,7 @@ int Input[] = {4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,
 
 //General Serial Communication
 String comma = ",";             // Define string 'comma', para indicar separação
-String end_mark = "end";        // define String 'endmark', para indicar a hora de para um processo.
+String end_mark = "end";        // define String 'endmark', para indicar a hora de parar um processo.
 
 
 
