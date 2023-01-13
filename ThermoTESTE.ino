@@ -85,12 +85,60 @@ void setup() {
 
 void loop() {
   serialEvent();
-  if(stringComplete){
-    read_MuxShield();
-    delay(200);
-    }}
+  if (stringComplete){
+    SerialUSB.println(inputString);
+    in.analyzeAndCheck(inputString);
+
+    // Clear input string, avoid accumulation of previous messages
+    inputString = "";
+
+    if (in.addressFound) {
+      if (in.input_array[0] == "i" || in.input_array[0] == "r") {
+        
+        
+        SerialUSB.println("Código reconheceu comando 'i' ou 'r'.")
+        SerialUSB.println("Saving Setpoints");
+        for (int n = 1; n < num_vials+1; n++) {
+          saved_inputs[n-1] = in.input_array[n].toInt();
+        }
+        
+        SerialUSB.println();
+        SerialUSB.println("Responding with Data...");
+        new_input = true;
+        SerialUSB.println(new_input);
+        dataResponse();
+        SerialUSB.println("Waiting for OK to execute...");
+        SerialUSB.println();
+      }
+
+      if (in.input_array[0] == "a" && new_input) {
+        SerialUSB.println();
+        SerialUSB.println("código reconheceu comando 'a'. Atualizando valores...");
+        update_values();
+        SerialUSB.println("Command Executed!");
+        new_input = false;
+        SerialUSB.println();
+      }
+
+    inputString = "";
+    }
+
+    //Clears strings if too long
+    if (inputString.length() > 900){
+      SerialUSB.println();
+      SerialUSB.println("Cleared Input String");
+      SerialUSB.println();
+      inputString = "";
+    }
 
     
+    in.addressFound = false;
+    stringComplete = false;
+  }
+  // Update PID every loop for better temp control
+  read_MuxShield();
+}
+
 void serialEvent() {
   while (Serial1.available()) {
     char inChar = (char)Serial1.read();
@@ -103,11 +151,34 @@ void serialEvent() {
 }
 
 
+void dataResponse() {
+  digitalWrite(12, HIGH);
+  String outputString = address + "b,"; // b is a broadcast tag
+  for (int i = 0; i < num_vials; i = i + 1) {
+    outputString += String((int)Input[i]) + comma;
+  }
+  outputString += end_mark;
+  delay(100); // important to make sure pin 12 flips appropriately
+  SerialUSB.println();
+  SerialUSB.println("A outputString é:" + outputString);
+  SerialUSB.println();
+  Serial1.print(outputString); // issues w/ println on Serial 1 being read into Raspberry Pi
+  delay(100); // important to make sure pin 12 flips appropriately
+  digitalWrite(12, LOW);
+}
+
+void update_values() {
+  for (int i = 0; i < num_vials; i = i + 1) {
+    Setpoint[i] = (double)saved_inputs[i];
+  }
+  SerialUSB.println("Valores Atualizados!")
+}
+
 void read_MuxShield() {
 
   int times_avg = 3;
-  unsigned long mux_total[num_vials];  
-  int mux_readings[num_vials]; //declara uma array de valores inteiros, correspondentes aos valores do número de vials.
+  unsigned long mux_total[num_vials];
+  int mux_readings[num_vials];
 
   memset(mux_total, 0, sizeof(mux_total));
   for (int h = 0; h < (times_avg); h++) {
@@ -118,7 +189,7 @@ void read_MuxShield() {
 
   for (int m = 0; m < num_vials; m++) {
     mux_readings[m] = mux_total[m] / times_avg;
-    Input[m] = mux_readings[m];    //adquire e faz uma média dos valores lidos pelo mux.
+    Input[m] = mux_readings[m];
   }
 
   for (int i = 0; i < num_vials; i = i + 1) {
@@ -159,7 +230,7 @@ int readMux(int channel) {
 
   //read the value at the SIG pin
   int val = analogRead(SIG_PIN);
-  Serial.println(val); //escreve o valor lido pelo mux, de cada vial.
+
   //return the value
   return val;
 }
