@@ -1,0 +1,8 @@
+#######################################
+# Syntax Coloring Map for evolver_si
+#   Datatypes (KEYWORD1)
+#   Methods and Functions (KEYWORD2)
+#######################################
+
+evolver_si	KEYWORD1
+analyzeAndCheck	KEYWORD2
