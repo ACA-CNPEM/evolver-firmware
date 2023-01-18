@@ -19,7 +19,7 @@ evolver_si::~evolver_si() {
 
 
 // SI MANIPULATION FUNCTION
-void evolver_si::analyze_and_check(String input_string) {
+void evolver_si::analyzeAndCheck(String input_string){
    /* Debugging help
    SerialUSB.println("Starting!!!");
    SerialUSB.print("input_string = ");
@@ -39,12 +39,6 @@ void evolver_si::analyze_and_check(String input_string) {
 	// Finds the index for where the _start_address and _end_address begin in the input_string
 	int start_index = input_string.lastIndexOf(_start_address);
 	int end_index = input_string.lastIndexOf(_end_address);
-	SerialUSB.print("input string: ");
-	SerialUSB.println(input_string);
-	SerialUSB.print("start address: ");
-	SerialUSB.println(_end_address);
-	SerialUSB.print("start index: ");
-	SerialUSB.println(end_index);
 
 	if (start_index != -1 && end_index != -1){
 
