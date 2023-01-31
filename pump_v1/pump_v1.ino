@@ -126,7 +126,7 @@ void loop() {
   serialEvent();
   if (string_complete){
 
-    si.analyze_and_check(input_string);
+    si.analyzeAndCheck(input_string);
     if (si.address_found){
 
       // Instant or recurring command 
@@ -161,11 +161,13 @@ void loop() {
             if (repetition_interval != 0 && pumps[i].isNewChemostat(operation_time, repetition_interval)){
                SerialUSB.print("Unaltered chemostat: ");
                SerialUSB.println(i);             
+            }else{
+              pumps[i].setPump(operation_time, repetition_interval);
             }
           }
         
         SerialUSB.print("Pump ");
-        SerialUSB.print(i);
+        SerialUSB.print(i+1);
         SerialUSB.println(": Command Executed!");
         new_input = false;
         }
