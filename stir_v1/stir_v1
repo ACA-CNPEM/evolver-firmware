@@ -6,7 +6,7 @@
 
 
 /* LIBRARIES */
-#include <Arduino.h>S
+#include <Arduino.h>
 #include <evolver_si.h>
 #include <Tlc5940.h>
 

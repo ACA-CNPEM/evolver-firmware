@@ -39,7 +39,7 @@ int Kd = 2;
 
 
 /* PID SETTINGS*/
-PID pid1(&Input[0], &Output[0], &Setpoint[0], Kp, Ki, Kd, DIRECT);//650, 12, 2
+PID pid1(&Input[0], &Output[0], &Setpoint[0], Kp, Ki, Kd, DIRECT); // 650, 12, 2
 PID pid2(&Input[1], &Output[1], &Setpoint[1], Kp, Ki, Kd, DIRECT);
 PID pid3(&Input[2], &Output[2], &Setpoint[2], Kp, Ki, Kd, DIRECT);
 PID pid4(&Input[3], &Output[3], &Setpoint[3], Kp, Ki, Kd, DIRECT);
@@ -100,7 +100,7 @@ void loop(){
   serialEvent();
   if (string_complete){
 
-    si.analyze_and_check(input_string);
+    si.analyzeAndCheck(input_string);
     if (si.address_found){
      
       // Instant or recurring command      

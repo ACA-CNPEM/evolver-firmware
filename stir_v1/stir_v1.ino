@@ -49,7 +49,7 @@ void loop(){
   serialEvent(1);
    if (string_complete){ 
 
-    si.analyze_and_check(input_string);
+    si.analyzeAndCheck(input_string);
     if (si.address_found){
 
       // Instant or recurring command 
