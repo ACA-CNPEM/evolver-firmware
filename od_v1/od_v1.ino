@@ -10,6 +10,7 @@
 
 
 /* LIBRARIES */
+//#include <Arduino.h>
 #include <evolver_si.h>
 #include <Tlc5940.h>
 
@@ -86,14 +87,11 @@ void setup() {
 
 /********************************** LOOP **********************************/
 void loop(){
-  SerialUSB.print("Reading vial: ");
-  SerialUSB.println(active_vial);
   readMuxShield();
 
   if (string_complete){
-    SerialUSB.println(input_string);
-    pd_si.analyze_and_check(input_string);
-    led_si.analyze_and_check(input_string);
+    pd_si.analyzeAndCheck(input_string);
+    led_si.analyzeAndCheck(input_string);
 
     // Photodiode logic
     if (pd_si.address_found){
@@ -104,7 +102,7 @@ void loop(){
         saved_pd_avg = pd_si.input_array[1].toInt();
 
         SerialUSB.println("Broadcasting new PD command response: ");
-        broadcastDataResponse();
+        broadcastResponse();
 
         SerialUSB.println("Waiting for OK to execute...\n");
         new_pd_input = true;
@@ -199,7 +197,7 @@ void echoCommand() {
 
 
 // This function will broadcast the PD
-void broadcastDataResponse(){
+void broadcastResponse(){
   digitalWrite(12, HIGH);
   String output_string = pd_address + "b,";
   
@@ -235,18 +233,12 @@ void readMuxShield(){
     serialEvent();
 
     if (string_complete){
-      SerialUSB.print("String completed, stoping average at ");
-      SerialUSB.println(i);
       break;
     }
   }
 
   if (!string_complete){
     output[active_vial] = avg_sum / pd_avg_of;
-    SerialUSB.print("Output of vial ");
-    SerialUSB.print(active_vial);
-    SerialUSB.print(" = ");
-    SerialUSB.println(output[active_vial]);
 
     if (active_vial == 15){
       active_vial = 0;
@@ -257,8 +249,6 @@ void readMuxShield(){
 }
 
 
-// This function
-// This function controls the mux pins on the ADC board
 int readMux(int channel){
   
   int control_pins[] = {m0, m1, m2, m3};
