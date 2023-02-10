@@ -59,93 +59,6 @@ PID *allPIDS[16] = {&pid1, &pid2, &pid3, &pid4, &pid5, &pid6, &pid7, &pid8, &pid
 
 
 
-/********************************** SETUP **********************************/
-void setup(){
-  SerialUSB.begin(9600);
-  Serial1.begin(9600);
-  while (!Serial1);
-
-  // Communication 
-  pinMode(12, OUTPUT);
-  digitalWrite(12, LOW);
-  input_string.reserve(2000); // reserve 2000 bytes for the input_string
-
-  // ADC control pins
-  pinMode(m0, OUTPUT);
-  pinMode(m1, OUTPUT);
-  pinMode(m2, OUTPUT);
-  pinMode(m3, OUTPUT);
-
-  digitalWrite(m0, LOW);
-  digitalWrite(m1, LOW);
-  digitalWrite(m2, LOW);
-  digitalWrite(m3, LOW);
-
-  analogReadResolution(12);
-
-  // PWM control object
-  Tlc.init(LEFT_PWM, 4095);
-  
-  // PID control object
-  for (int i = 0; i < num_vials; i++) {
-    allPIDS[i]->SetOutputLimits(0, 4095);
-    allPIDS[i]->SetMode(AUTOMATIC);
-  }
-}
-
-
-
-/********************************** LOOP **********************************/
-void loop(){
-  serialEvent();
-  if (string_complete){
-
-    si.analyzeAndCheck(input_string);
-    if (si.address_found){
-     
-      // Instant or recurring command      
-      if (si.input_array[0] == "i" || si.input_array[0] == "r"){
-        
-        SerialUSB.println("Saving Setpoints...");
-        for (int i = 1; i < num_vials + 1; i++){
-          saved_inputs[i - 1] = si.input_array[i].toInt();
-        }
-        
-        SerialUSB.println("Echoing temperature commands:");
-        echoCommand();
-        SerialUSB.println("Broadcast response (PID):");
-        broadcastResponse();
-        
-        SerialUSB.println("Waiting for OK to execute...\n");
-        new_input = true;
-      }
-
-      // Acknoledgment to run command
-      if (si.input_array[0] == "a" && new_input){
-        updateValues();
-        SerialUSB.println("Command Executed!");
-        new_input = false;
-      }
-
-      input_string = "";
-    }
-
-    // Clears strings if too long
-    if (input_string.length() > 900){
-      SerialUSB.println("Cleared Input String");
-      input_string = "";
-    }
-
-    si.address_found = false;
-    string_complete = false;
-  }
-
-  // Update PID every loop for better temp control
-  readMuxShield();
-}
-
-
-
 /********************************** FUNCTIONS **********************************/
 // This function will read the Serial1 object onto input_string
 void serialEvent(){
@@ -270,3 +183,91 @@ int readMux(int channel){
   int value = analogRead(m_out);
   return value;
 }
+
+
+
+/********************************** SETUP **********************************/
+void setup(){
+  SerialUSB.begin(9600);
+  Serial1.begin(9600);
+  while (!Serial1);
+
+  // Communication 
+  pinMode(12, OUTPUT);
+  digitalWrite(12, LOW);
+  input_string.reserve(2000); // reserve 2000 bytes for the input_string
+
+  // ADC control pins
+  pinMode(m0, OUTPUT);
+  pinMode(m1, OUTPUT);
+  pinMode(m2, OUTPUT);
+  pinMode(m3, OUTPUT);
+
+  digitalWrite(m0, LOW);
+  digitalWrite(m1, LOW);
+  digitalWrite(m2, LOW);
+  digitalWrite(m3, LOW);
+
+  analogReadResolution(12);
+
+  // PWM control object
+  Tlc.init(LEFT_PWM, 4095);
+  
+  // PID control object
+  for (int i = 0; i < num_vials; i++) {
+    allPIDS[i]->SetOutputLimits(0, 4095);
+    allPIDS[i]->SetMode(AUTOMATIC);
+  }
+}
+
+
+
+/********************************** LOOP **********************************/
+void loop(){
+  serialEvent();
+  if (string_complete){
+
+    si.analyzeAndCheck(input_string);
+    if (si.address_found){
+     
+      // Instant or recurring command      
+      if (si.input_array[0] == "i" || si.input_array[0] == "r"){
+        
+        SerialUSB.println("Saving Setpoints...");
+        for (int i = 1; i < num_vials + 1; i++){
+          saved_inputs[i - 1] = si.input_array[i].toInt();
+        }
+        
+        SerialUSB.println("Echoing temperature commands:");
+        echoCommand();
+        SerialUSB.println("Broadcast response (PID):");
+        broadcastResponse();
+        
+        SerialUSB.println("Waiting for OK to execute...\n");
+        new_input = true;
+      }
+
+      // Acknoledgment to run command
+      if (si.input_array[0] == "a" && new_input){
+        updateValues();
+        SerialUSB.println("Command Executed!");
+        new_input = false;
+      }
+
+      input_string = "";
+    }
+
+    // Clears strings if too long
+    if (input_string.length() > 900){
+      SerialUSB.println("Cleared Input String");
+      input_string = "";
+    }
+
+    si.address_found = false;
+    string_complete = false;
+  }
+
+  // Update PID every loop for better temp control
+  readMuxShield();
+}
+

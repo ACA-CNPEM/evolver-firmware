@@ -10,7 +10,7 @@
 
 
 /* LIBRARIES */
-//#include <Arduino.h>
+#include <Arduino.h>
 #include <evolver_si.h>
 #include <Tlc5940.h>
 
@@ -46,6 +46,129 @@ int active_vial = 0;
 int pd_avg_of = 1000;
 int output[] = {60000,60000,60000,60000,60000,60000,60000,60000,60000,60000,60000,60000,60000,60000,60000,60000};
 int Input[] = {4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095};
+
+
+
+/********************************** FUNCTIONS **********************************/
+// This function will read the Serial1 object onto input_string
+void serialEvent(){
+
+  while (Serial1.available()){    
+    char input_char = (char)Serial1.read();
+    input_string += input_char;
+
+    if (input_char == '!'){
+      string_complete = true;
+      break;
+    }
+  }
+}
+
+
+// This function echoes the LED commands received
+void echoCommand() {
+  digitalWrite(12, HIGH);
+  String output_string = led_address + "e,";
+
+  for (int i = 1; i < num_vials + 1 ; i++) {
+    output_string += led_si.input_array[i] + comma;
+  }
+  output_string += end_mark;
+
+  delay(100);
+  SerialUSB.println(output_string);
+  Serial1.print(output_string);
+
+  delay(100);
+  digitalWrite(12, LOW);
+}
+
+
+// This function will broadcast the PD
+void broadcastResponse(){
+  digitalWrite(12, HIGH);
+  String output_string = pd_address + "b,";
+  
+  for (int i = 0; i < num_vials; i++){
+    output_string += output[i] + comma;
+  }
+  output_string += end_mark;
+
+  delay(100); 
+  SerialUSB.println(output_string);
+  Serial1.print(output_string);
+
+  delay(100);
+  digitalWrite(12, LOW);
+}
+
+
+// This function will
+void updateValues() {
+  for (int i = 0; i < num_vials; i++) {
+    Tlc.set(LEFT_PWM, i, 4095 - saved_led_inputs[i]);
+  }
+  while(Tlc.update());
+}
+
+
+int readMux(int channel){
+  
+  int control_pins[] = {m0, m1, m2, m3};
+  int mux_channels[16][4] = {
+    {0, 0, 0, 0}, //channel 0; Vial 1
+    {1, 1, 0, 0}, //channel 3; Vial 2
+    {1, 0, 0, 0}, //channel 1; Vial 3
+    {0, 1, 0, 0}, //channel 2; Vial 4
+    {0, 0, 1, 0}, //channel 4; Vial 5
+    {1, 1, 1, 0}, //channel 7; Vial 6
+    {1, 0, 1, 0}, //channel 5; Vial 7
+    {0, 1, 1, 0}, //channel 6; Vial 8
+    {0, 0, 0, 1}, //channel 8; Vial 9
+    {1, 1, 0, 1}, //channel 11; Vial 10
+    {1, 0, 0, 1}, //channel 9; Vial 11
+    {0, 1, 0, 1}, //channel 10; Vial 12
+    {0, 0, 1, 1}, //channel 12; Vial 13
+    {1, 1, 1, 1}, //channel 15; Vial 14
+    {1, 0, 1, 1}, //channel 13; Vial 15
+    {0, 1, 1, 1}, //channel 14; Vial 16
+  };
+
+  // Sweeping through control pins to select desired channel
+  for (int i = 0; i < 4; i ++) {
+    digitalWrite(control_pins[i], mux_channels[channel][i]);
+  }
+
+  // Read the value at the channel
+  int value = analogRead(m_out);
+  return value;
+}
+
+
+// This function will read
+void readMuxShield(){
+  unsigned long avg_sum = 0;
+  
+  for (int i = 0; i < pd_avg_of; i++){
+    avg_sum += readMux(active_vial);
+    serialEvent();
+
+    if (string_complete){
+      break;
+    }
+  }
+
+  if (!string_complete){
+    output[active_vial] = avg_sum / pd_avg_of;
+
+    if (active_vial == 15){
+      active_vial = 0;
+    }else{
+      active_vial++;
+    }
+  }
+}
+
 
 
 
@@ -140,7 +263,7 @@ void loop(){
       // Acknoledgment to run command
       if (led_si.input_array[0] == "a" && new_led_input){
         updateValues();
-        SerialUSB.println("Command Executed!");
+        SerialUSB.println("LED Command Executed!\n");
         new_led_input = false;
       }
 
@@ -161,122 +284,3 @@ void loop(){
 
 
 
-/********************************** FUNCTIONS **********************************/
-// This function will read the Serial1 object onto input_string
-void serialEvent(){
-
-  while (Serial1.available()){    
-    char input_char = (char)Serial1.read();
-    input_string += input_char;
-
-    if (input_char == '!'){
-      string_complete = true;
-      break;
-    }
-  }
-}
-
-
-// This function echoes the LED commands received
-void echoCommand() {
-  digitalWrite(12, HIGH);
-  String output_string = led_address + "e,";
-
-  for (int i = 1; i < num_vials + 1 ; i++) {
-    output_string += led_si.input_array[i] + comma;
-  }
-  output_string += end_mark;
-
-  delay(100);
-  SerialUSB.println(output_string);
-  Serial1.print(output_string);
-
-  delay(100);
-  digitalWrite(12, LOW);
-}
-
-
-// This function will broadcast the PD
-void broadcastResponse(){
-  digitalWrite(12, HIGH);
-  String output_string = pd_address + "b,";
-  
-  for (int i = 0; i < num_vials; i++){
-    output_string += output[i] + comma;
-  }
-  output_string += end_mark;
-
-  delay(100); 
-  SerialUSB.println(output_string);
-  Serial1.print(output_string);
-
-  delay(100);
-  digitalWrite(12, LOW);
-}
-
-
-// This function will
-void updateValues() {
-  for (int i = 0; i < num_vials; i++) {
-    Tlc.set(LEFT_PWM, i, 4095 - saved_led_inputs[i]);
-  }
-  while(Tlc.update());
-}
-
-
-// This function will read
-void readMuxShield(){
-  unsigned long avg_sum = 0;
-  
-  for (int i = 0; i < pd_avg_of; i++){
-    avg_sum += readMux(active_vial);
-    serialEvent();
-
-    if (string_complete){
-      break;
-    }
-  }
-
-  if (!string_complete){
-    output[active_vial] = avg_sum / pd_avg_of;
-
-    if (active_vial == 15){
-      active_vial = 0;
-    }else{
-      active_vial++;
-    }
-  }
-}
-
-
-int readMux(int channel){
-  
-  int control_pins[] = {m0, m1, m2, m3};
-  int mux_channels[16][4] = {
-    {0, 0, 0, 0}, //channel 0; Vial 1
-    {1, 1, 0, 0}, //channel 3; Vial 2
-    {1, 0, 0, 0}, //channel 1; Vial 3
-    {0, 1, 0, 0}, //channel 2; Vial 4
-    {0, 0, 1, 0}, //channel 4; Vial 5
-    {1, 1, 1, 0}, //channel 7; Vial 6
-    {1, 0, 1, 0}, //channel 5; Vial 7
-    {0, 1, 1, 0}, //channel 6; Vial 8
-    {0, 0, 0, 1}, //channel 8; Vial 9
-    {1, 1, 0, 1}, //channel 11; Vial 10
-    {1, 0, 0, 1}, //channel 9; Vial 11
-    {0, 1, 0, 1}, //channel 10; Vial 12
-    {0, 0, 1, 1}, //channel 12; Vial 13
-    {1, 1, 1, 1}, //channel 15; Vial 14
-    {1, 0, 1, 1}, //channel 13; Vial 15
-    {0, 1, 1, 1}, //channel 14; Vial 16
-  };
-
-  // Sweeping through control pins to select desired channel
-  for (int i = 0; i < 4; i ++) {
-    digitalWrite(control_pins[i], mux_channels[channel][i]);
-  }
-
-  // Read the value at the channel
-  int value = analogRead(m_out);
-  return value;
-}

@@ -112,6 +112,6 @@
     \f$\displaystyle TLC\_GSCLK\_PERIOD =
        \frac{2 * TLC\_PWM\_PERIOD}{4096} - 1 \f$
     \note Default is 3 */
-#define TLC_GSCLK_PERIOD    7
+#define TLC_GSCLK_PERIOD    3
 
 #endif

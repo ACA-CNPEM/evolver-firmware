@@ -7,6 +7,7 @@
 
 
 /* LIBRARIES */
+#include <Arduino.h>
 #include <evolver_si.h>
 #include <Tlc5940.h>
 
@@ -99,6 +100,41 @@ Pump pumps[num_pumps];
 
 
 
+/********************************** FUNCTIONS **********************************/
+// This function will read the Serial1 object onto input_ttring
+void serialEvent(){
+
+  while (Serial1.available()){    
+    char input_char = (char)Serial1.read();
+    input_string += input_char;
+
+    if (input_char == '!'){
+      string_complete = true;
+      break;
+    }
+  }
+}
+
+
+// This function echoes the commands received
+void echoCommand(){
+  digitalWrite(12, HIGH);  
+  String output_string = address + "e,";
+
+  for (int i = 0; i < num_pumps; i++) {
+    output_string += si.input_array[i + 1] + comma;
+  }
+  output_string += end_mark;
+
+  delay(100);
+  SerialUSB.println(output_string);
+  Serial1.print(output_string);
+
+  delay(100);
+  digitalWrite(12, LOW);
+}
+
+
 /********************************** SETUP **********************************/
 void setup() {
   Serial1.begin(9600);
@@ -171,6 +207,8 @@ void loop() {
         SerialUSB.println(": Command Executed!");
         new_input = false;
         }
+
+        SerialUSB.println();
       }
         
     input_string = "";
@@ -191,40 +229,4 @@ void loop() {
     SerialUSB.println("Cleared Input String");
     input_string = "";
   }
-}
-
-
-
-/********************************** FUNCTIONS **********************************/
-// This function will read the Serial1 object onto input_ttring
-void serialEvent(){
-
-  while (Serial1.available()){    
-    char input_char = (char)Serial1.read();
-    input_string += input_char;
-
-    if (input_char == '!'){
-      string_complete = true;
-      break;
-    }
-  }
-}
-
-
-// This function echoes the commands received
-void echoCommand(){
-  digitalWrite(12, HIGH);  
-  String output_string = address + "e,";
-
-  for (int i = 0; i < num_pumps; i++) {
-    output_string += si.input_array[i + 1] + comma;
-  }
-  output_string += end_mark;
-
-  delay(100);
-  SerialUSB.println(output_string);
-  Serial1.print(output_string);
-
-  delay(100);
-  digitalWrite(12, LOW);
 }

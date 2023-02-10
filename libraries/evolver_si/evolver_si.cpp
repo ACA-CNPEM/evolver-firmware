@@ -68,7 +68,7 @@ void evolver_si::analyzeAndCheck(String input_string){
 			// If the number of commands equals the number of vials, go though the string
 			// saving them onto the input_array
 
-			for(int i = start_index + strlen(_start_address); i < end_index; i++){
+			for(int i = (start_index + strlen(_start_address)); i < end_index; i++){
 				if (input_string[i] == ',') {
 					// A command has ended, another should begin
 					input_array[j] = temp_string;
@@ -89,3 +89,4 @@ void evolver_si::analyzeAndCheck(String input_string){
 		}
 	}
 }
+
